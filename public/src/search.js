@@ -12,6 +12,9 @@ $(document).ready(function() {
     $('#list-suggesstion').focusin(function() {
         document.getElementById('suggesstion-box').style.display = 'block';
     });
+    var name1 = name;
+    $('.nameReceiver').html(name1);
+
 });
 
 const checkFriend = (idSender, idReceiver) => {
@@ -25,14 +28,16 @@ const checkFriend = (idSender, idReceiver) => {
         success: (result) => {
             $.each(result, function(key, val) {
                 if (val.status == "1") {
+                    document.getElementById('friend' + idReceiver).style.display = 'block'
                     $('.friend' + idReceiver).html('<i class="fas fa-check"></i><span> Bạn bè</span>')
                 } else if (val.status == "0") {
                     if (val.idSender == idSender) {
-                        $('.friend' + idReceiver).html('<i class="fas fa-user-times"></i><span> Đã gửi lời mời</span>')
+                        document.getElementById('cancel' + idReceiver).style.display = 'block'
+                        $('.cancel' + idReceiver).html('<i class="fas fa-user-times"></i><span> Đã gửi lời mời</span>')
                     } else if (val.idReceiver == idSender) {
-                        $('.friend' + idReceiver).html('Xác Nhận')
+                        document.getElementById('contentConfim' + idReceiver).style.display = 'block'
+                        $('.confim' + idReceiver).html('Xác Nhận')
                         $('.huy' + idReceiver).html('Hủy')
-
                     }
                 }
             })
@@ -54,51 +59,165 @@ const buttonFriend = (id) => {
                 if (friends.includes(id + "")) {
                     checkFriend(idUser, id)
                 } else {
-                    $('.friend' + id).html('<i class="fas fa-user-plus"></i><span> Thêm bạn bè</span>')
+                    if (id != idUser) {
+                        document.getElementById('add' + id).style.display = 'block'
+                        $('.add' + id).html('<i class="fas fa-user-plus"></i><span> Thêm bạn bè</span>')
+                    }
                 }
             })
         }
     });
 }
 
-const rowUser = (id) => {
+//hàm thêm bạn bè
+const addFriend = (name, idReceiver) => {
+    var idUser = idUser1;
     $.ajax({
-        url: "/user",
+        url: "/addFriend",
+        type: "POST",
+        data: {
+            idUser: idUser,
+            idReceiver: idReceiver
+        },
+        success: function(result) {
+            if (result) {
+                alert("Bạn đã gửi lời mời kết bạn tới " + name + "")
+                document.getElementById('add' + idReceiver).style.display = 'none'
+                document.getElementById('cancel' + idReceiver).style.display = 'block'
+                $('.cancel' + idReceiver).html('<i class="fas fa-user-times"></i><span> Đã gửi lời mời</span>')
+            }
+        }
+    })
+
+}
+
+//hàm hủy lời mời kết bạn
+const cancelInvitation = (name, idReceiver) => {
+    var confim = confirm("Bạn có muốn hủy lời mời kết bạn " + name + " không?");
+    if (confim == true) {
+        var idUser = idUser1
+        $.ajax({
+            url: "/cancelInvitation",
+            type: "POST",
+            data: {
+                idUser: idUser,
+                idReceiver: idReceiver
+            },
+            success: function(result) {
+                if (result) {
+                    document.getElementById('cancel' + idReceiver).style.display = 'none'
+                    document.getElementById('add' + idReceiver).style.display = 'block'
+                    $('.add' + idReceiver).html('<i class="fas fa-user-plus"></i><span> Thêm bạn bè</span>')
+                }
+            }
+        })
+
+    }
+
+}
+
+//hủy bạn bè
+const cancelFriend = (name, idReceiver) => {
+    var idUser = idUser1;
+    var confim = confirm("Bạn có muốn hủy kết bạn với " + name + " không?");
+    if (confim) {
+        $.ajax({
+            url: "/cancelInvitation",
+            type: "POST",
+            data: {
+                idUser: idUser,
+                idReceiver: idReceiver
+            },
+            success: function(result) {
+                if (result) {
+                    document.getElementById('friend' + idReceiver).style.display = 'none'
+                    document.getElementById('add' + idReceiver).style.display = 'block'
+                    $('.add' + idReceiver).html('<i class="fas fa-user-plus"></i><span> Thêm Bạn bè</span>')
+                }
+            }
+        })
+    }
+}
+
+//từ chối lời mời
+const deleteInvitation = (name, idReceiver) => {
+    var confim = confirm("Bạn có muốn từ chối lời mời kết bạn của " + name + " không?");
+    if (confim == true) {
+        var idUser = idUser1
+        $.ajax({
+            url: "/cancelInvitation",
+            type: "POST",
+            data: {
+                idUser: idUser,
+                idReceiver: idReceiver
+            },
+            success: function(result) {
+                if (result) {
+                    document.getElementById('contentConfim' + idReceiver).style.display = 'none'
+                    document.getElementById('add' + idReceiver).style.display = 'block'
+                    $('.add' + idReceiver).html('<i class="fas fa-user-plus"></i><span> Thêm bạn bè</span>')
+                }
+            }
+        })
+
+    }
+}
+
+//xác nhận lời mời kết bạn
+const confimInvitation = (name, idReceiver) => {
+    var idUser = idUser1;
+    $.ajax({
+        url: "/confimInvitation",
+        type: "POST",
+        data: {
+            idUser: idUser,
+            idReceiver: idReceiver
+        },
+        success: function(result) {
+            if (result) {
+                document.getElementById('contentConfim' + idReceiver).style.display = 'none'
+                document.getElementById('friend' + idReceiver).style.display = 'block'
+                $('.friend' + idReceiver).html('<i class="fas fa-check"></i><span> Bạn bè</span>')
+                alert("Bạn đã chấp nhận lời kết bạn của " + name + "")
+            }
+        }
+    })
+
+}
+
+//lấy id người dùng khi click vào kết quả tìm kiếm
+const Receiver = (id) => {
+    $.ajax({
+        url: "/receiver",
         type: "POST",
         data: {
             userId: id
         },
         success: function(result) {
-            $.each(result, function(key, val) {
-                $('.col-md-10').html(val.name);
-                document.getElementById('suggesstion-box').style.display = 'none';
-                $("#searchName").val("")
-            })
+            // $.each(result, function(key, val) {
+            //     $('.nameReceiver').html(val.name);
+            //     document.getElementById('suggesstion-box').style.display = 'none';
+            //     $("#searchName").val("")
+            //     window.history.pushState('page2', 'Title');
+            // })
         }
     });
 }
 
-const addFriend = (idFriend) => {
-    var idUser = idUser1
-    var typebtn = $('.friend' + idFriend).getValue
-    console.log(typebtn)
-    $.ajax({
-        url: "/addFriend",
-        type: "POST",
-        data: {
-            friendId: idFriend,
-            idUser: idUser
-        },
-        success: function(result) {
-            $.each(result, function(key, val) {
-                // $('.col-md-10').html(val.name);
-                // document.getElementById('suggesstion-box').style.display = 'none';
-                $(this).html("hủy lời mời")
-            })
-        }
-    });
-    console.log()
+//cập nhật ảnh đại diẹn
+
+//lấy tên file ảnh
+var replaceTest = function(str) {
+    return str.replace(/^.*(\\|\/|\:)/, '');
 }
+
+function updateImage(idUser) {
+    var image = $('.file-anh').val()
+    var naemImage = replaceTest(image)
+    console.log(idUser + naemImage)
+}
+
+
 
 $(function() {
     $("#searchName").autocomplete({
@@ -119,12 +238,17 @@ $(function() {
                         <div class="title-search" style="padding: 10px 15px 10px 15px;">Nguời dùng</div>`);
                         $.each(data, function(key, value) {
                             $('#list-suggesstion').append(`<div  id="row-search" class="row-search">
-                            <div onclick=rowUser("` + value.id + `")>
+                            <div onclick=Receiver("` + value.id + `")>
                             <img src="assets/image/user.jpg" height= "30px" width="30px" class="image-user-search" />
                             ` + value.name + `</div>
                             <div class="addFriend">
-                            <button onclick=addFriend("` + value.id + `") class="friend friend` + value.id + `">` + buttonFriend(value.id) + `</button>
-                            <div id="huy` + value.id + `" class="huy huy` + value.id + `"></div>
+                            <button id="add` + value.id + `" onclick=addFriend("` + value.name + `",'` + value.id + `') class="friend add` + value.id + `">` + buttonFriend(value.id) + `</button>
+                            <button id="cancel` + value.id + `" onclick=cancelInvitation("` + value.name + `",'` + value.id + `') class="friend cancel` + value.id + `">` + buttonFriend(value.id) + `</button>
+                            <button id="friend` + value.id + `" onclick=cancelFriend("` + value.name + `",'` + value.id + `') class="friend friend` + value.id + `">` + buttonFriend(value.id) + `</button>
+                            <div id="contentConfim` + value.id + `" class="confim">
+                            <button id="confim` + value.id + `" onclick=confimInvitation("` + value.name + `",'` + value.id + `') class="confim` + value.id + `">` + buttonFriend(value.id) + `</button>
+                            <button id="huy` + value.id + `" onclick=deleteInvitation("` + value.name + `",'` + value.id + `') class="huy` + value.id + `"></button>
+                            </div>
                             </div>
                             </div>`);
                         });

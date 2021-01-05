@@ -5,7 +5,7 @@ var homeController = require("./controller/homeController");
 var siginController = require("./controller/siginController");
 var chat = require("./controller/chat");
 var server = require('http').createServer(app);
-var io = require('socket.io')(server);
+var io = require("socket.io")(server);
 
 // cổng cho server
 var port = 8000;
@@ -19,13 +19,22 @@ homeController(app);
 siginController(app);
 chat(app);
 
+const users = {}
+
 io.on('connection', socket => {
-    console.log("hello");
-    socket.emit('message', "wellcom")
+    socket.on('user-connected', function(data) {
+        users[data] = socket.id
+        io.emit('user-connected', data)
+    })
+    socket.on('send-mes', function(data) {
+        var socketId = users[data.receiver]
+        io.to(socketId).emit('new-message', data)
+    })
+
 });
 
 
 //server đang lắng nghe các request
-app.listen(port, function() {
+server.listen(port, function() {
     console.log("server is listening on port: ", port);
 });

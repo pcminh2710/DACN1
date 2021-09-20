@@ -11,24 +11,32 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
     <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
 
     <link rel="stylesheet" href="assets/css/index.css">
     <script src="assets/src/search.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
     <script defer src="assets/src/send.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         var idUser1 = "<%= idUser%>";
         var name = "<%= nameReceiver%>"
         var idReceiver1 = "<%= idReceiver%>"
-        console.log(idUser1)
+        var status = "<%= status%>"
+        var imageReceiver = "<%= imageReceiver%>"
+        var imageUser = "<%= image%>"
+        console.log(imageUser)
     </script>
 </head>
 
 <body>
     <div class="container-fuild">
         <div class="container-top">
+            <div class="logo" >
+                <img class="img-logo" src="https://png4u.com/wp-content/uploads/2020/11/Facebook-Messenger-New-Logo-Vector-01.png" alt="">
+                <h4>Messenger Chat</h4>
+            </div>
             <% if(message.length > 0 ){ %>
                 <div class="notification">
                     <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -42,13 +50,14 @@
                 </div>
                 <% } %>
                     <div class="user">
-                        <div class="user-container hover" data-toggle="modal" data-target="#exampleModal">
-                            <div class="hover user-image"></div>
-                            <div class="user-name">
-                                <% if(user){%>
+                        <div class="user-container hover" id="user" data-toggle="modal" data-target="#exampleModal">
+                            <% if(user){%>
+                                <div class="hover user-image">
+                                </div>
+                                <div class="user-name">
                                     <%= user %>
-                                        <% }%>
-                            </div>
+                                </div>
+                                <% }%>
                         </div>
                         <div class="user-more icon hover">
                             <i class="fas fa-plus"></i>
@@ -56,9 +65,18 @@
                         <div class="user-notification icon hover">
                             <i class="fas fa-bell"></i>
                         </div>
-                        <div class="user-sigup icon hover">
-                            <i class="fas fa-caret-down"></i>
+                        <div class="user-setting icon hover">
+                            <i class="fas fa-cog"></i>
+                            <div class="user__setting-list">
+                                <ul class="user__setting-container" id="user__setting-container">
+                                    <li class="user__setting-item">Cài đặt tài khoản</li>
+                                    <li class="user__setting-item user__setting--face">Cài khuôn mặt</li>
+                                    <li id="recognition" class="user__setting-item">Bảo mật Khuôn mặt</li>
+                                </ul>
+                            </div>
+
                         </div>
+                        <button style="background-color: #d5d6d8 ;border: none; color: white; padding: 7px 10px 7px 10px;border-radius: 8px; margin-right: 10px;outline: none;cursor: pointer;"><a href="http://localhost:8000/dangxuat" style="text-decoration: none;">Đăng xuất</a></button>
                     </div>
         </div>
         <div class="content-bottom">
@@ -81,6 +99,7 @@
                             <div id="text"></div>
                             <div id="list-suggesstion"></div>
                         </div>
+                        <div id="list-conversation" class="list-conversation"></div>
                     </div>
                 </div>
             </div>
@@ -89,70 +108,174 @@
                 <div class="container-right">
                     <div class="chat">
                         <div class="top">
-                            <img src="assets/image/user.jpg" alt="">
+                            <img id="imagereceiver" src="" alt="">
                             <div>
-                                <span id="nameReceiver" class="nameReceiver">Người dùng</span><br>
+                                <span id="nameReceiver" class="nameReceiver"></span><br>
                                 <span class="activate">Hoạt dộng 2 giờ trước</span>
                             </div>
                             <div class="call">
                                 <div><i class="fas fa-phone-alt"></i></div>
-                                <div><i class="fas fa-video"></i></div>
+                                <div onclick="CallVideo()"><i class="fas fa-video"></i></div>
                                 <div><i class="fas fa-exclamation-circle"></i></div>
                             </div>
                         </div>
                         <div class="mid" id="mid">
-                            <div class="content" id="content"></div>
+                            <div class="content" id="content">
+                            </div>
                         </div>
                         <div class="bottom">
                             <div><i class="fas fa-plus"></i></div>
                             <div><i class="far fa-smile-wink"></i></div>
-                            <div><i class="fas fa-image"></i></div>
-                            <div class="contentSend"><input onkeydown="return processKey(event)" class="message" name="message" id="contentMessage" placeholder="Nhập nội dung của bản" type="text"></div>
+                            <div onclick="choseImage()" id="send-image" class="send-image"><i class="fas fa-image"></i></div>
+                            <div id="contentSend" class="contentSend">
+                                <input style="display: none;" onchange="UploadImage(event)" class="myfile" id="myfile" type="file" multiple />
+                                <div class="containerImage" id="containerImage">
+                                </div>
+
+                                <input onkeydown="return processKey(event)" class="message" name="message" id="contentMessage" placeholder="Aa" type="text">
+                            </div>
                             <div onclick="btnSend()" class="button-send" id="button-send"><i class="fas fa-paper-plane"></i></div>
                         </div>
                     </div>
                     <div class="setting">
                         <div class="settingReceiver">
-                            <img src="assets/image/user.jpg" alt="">
-                            <span class="nameReceiver">Người dùng</span>
+                            <img id="ImageReceiver" src="" alt="">
+                            <div id="nameReceiver2" class="nameReceiver"> </div>
                             <span class="activate">Hoạt động 2 giờ trước</span>
                         </div>
-                        <!-- <div class="addFriend">
-                        <button id="" onclick=addFriend() class=""></button>
-                        <button id="" onclick=cancelInvitation() class=""></button>
-                        <button id="" onclick=cancelFriend() class=""></button>
-                        <div id="" class="confim">
-                            <button id="" onclick=confimInvitation() class=""></button>
-                            <button id="" onclick=deleteInvitation() class=""></button>
+                        <div class="test">
+                            <div class="item"> <ul>Tùy chỉnh đoạn <i class="fas fa-angle-down"></i>
+                            <li>Thay đổi màu sắc cuộc trò chuyện</li>
+                        <li>Tìm kiếm trong cuộc trò chuyện</li></ul> </div>
                         </div>
-                    </div> -->
-                        <div class="test">Tùy chỉnh đoạn <i class="fas fa-angle-down"></i></div>
-                        <div class="test">Quyền riêng tư & hỗ trợ <i class="fas fa-angle-down"></i></div>
-                        <div class="test">Tệp được chia sẻ <i class="fas fa-angle-down"></i></div>
-                        <div class="test">Ảnh đã chia sẻ <i class="fas fa-angle-down"></i></div>
+                        <div class="test">
+                            <div class="item">Quyền riêng tư & hỗ trợ <i class="fas fa-angle-down"></i></div>
+                        </div>
+                        <div class="test">
+                            <div class="item">Tệp được chia sẻ <i class="fas fa-angle-down"></i></div>
+                        </div>
+                        <div class="test">
+                            <div class="item">Ảnh đã chia sẻ <i class="fas fa-angle-down"></i></div>
+                            <div class="gird"></div>
+                        </div>
+
                     </div>
                 </div>
                 <%}%>
         </div>
     </div>
 
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Cập nhật ảnh đại diện của bạn</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" onclick="huydaidien()" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
                 </div>
                 <div class="modal-body">
-                    <span style="font-size: 18px;">Tải ảnh lên: </span><input class="file-anh" id="file-anh" type="file">
-                    <img src="" id="blah" />
+                    <span style="font-size: 18px;">Tải ảnh lên: </span><input onchange="PreImage(event)" class="fileanh" id="fileanh" type="file">
+                    <div style="margin-top: 20px;" id="chuaanhdaidien"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" id="btn-secondary" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="updateImage(idUser1)">Save changes</button>
+                    <button type="button" id="btn-secondary" class="btn btn-secondary" onclick="huydaidien()" data-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="updateImage()">Cập nhật</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+
+    <button style="display: none;" id="hello" type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+        Launch demo modal
+      </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content" style="background: #242526;">
+                <div class="modal-header" style="border-bottom: none;">
+                    <h5 class="modal-title" id="exampleModalLongTitle" style="color: white; font-weight: bold;font-family: sans-serif;font-size: 17px;">Lần chat video đến</h5>
+                    <button type="button" class="close" style="color: white; padding: 5px 7px 5px 7px; background-color:#3A3B3C;border-radius: 50px;margin: 1px;" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="border-bottom: none;">
+                    <input style="display: none" type="text" id="roomid">
+                    <input type="text" style="display: none;" id="idreceiver">
+                    <input type="text" style="display: none;" id="idsender">
+                    <div style="display: flex;">
+                        <img height="48px" width="48px" style="border-radius: 50px;" src="assets/image/user.jpg" alt="">
+                        <div style="margin-left: 10px;">
+                            <span id="callreceiver"></span><br>
+                            <span style="color: #8B8D91; font-size: 12px;font-family: sans-serif;">Cuộc gọi sẽ bắt đầu ngay khi bạn trả lời</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: none;">
+                    <span onclick="refuse()" style="color: #2C72CF;font-size: 15px; font-family: sans-serif;margin-right: 20px;font-weight: 100;cursor: pointer;">Từ chối</span>
+                    <button onclick="AcceptInvite()" type="button" class="btn btn-primary" style="font-size: 15px;font-family: sans-serif;"><i class="fas fa-video"></i> Chấp nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification__all">
+        <!-- <i class="fas fa-bell"></i>
+        <span>trunghuynh</span> -->
+        
+    </div>
+
+
+    <!-- setting face -->
+    <div class="container-model-face" id="container-model-face">
+        <div class="face__modal" id="face__modal">
+            <div class="face__container" id="face__container">
+                <h4 class="face_title">Cài khuôn mặt</h2>
+                    <i class="fas fa-times face__close"></i>
+                    <div>
+                        <p class="face__intruction">- Để có kết quả tốt nhất, chỉnh camera phù hợp với khuông mặt của bạn và tránh môi trường xung quanh quá sáng hoặc quá tối khi đăng ký</p>
+                        <p class="face__intruction">- Để có kết quả tốt hệ thống sẽ cần quá trình khoảng 1 phút để ghi nhận khuôn mặt của bạn, vì vậy trong quá trình 3 phút bạn hãy thay đổi khuôn mặt của bạn lên, xuống, qua phải, qua trái để hệ thống ghi nhận được nhiều góc mặt
+                            của bạn.
+                        </p>
+                        <div class="face__confim">
+                            <input type="checkbox" id="check__confim">
+                            <p class="face__intruction face__intruction--confim">Xác nhận bạn đã đọc phần hướng dẫn</p>
+                        </div>
+                        <!-- <form action="/detect_face" method="POST"> -->
+                        <div class="face__button">
+                            <button class="btn__face" id="btn_face">Đăng ký khuôn mặt</button>
+                            <div class="btn_face--hidden"></div>
+                        </div>
+                        <!-- </form> -->
+                    </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container-model-recognition" id="container-model-recognition">
+        <div class="face__modal" id="face__modal">
+            <div class="face__container" id="face__container">
+                <h4 class="face_title">Bảo mật khuôn mặt</h2>
+                    <i class="fas fa-times face__close"></i>
+                    <div>
+                        <p class="face__intruction">Nếu bạn đã đăng ký khuôn mặt của mình hãy đọc những lưu ý sau khi sử dụng:</p>
+                        <p class="face__intruction">- Bạn cần thiết lập màn hình máy tính có mật khẩu. Vì khi chúng tôi không nhận diện được khuôn mặt của bạn chúng tôi sẽ khóa màn hình máy tính để tăng tính bảo mật</p>
+                        <p class="face__intruction">- Để chúng tôi có thể nhận diện được chính bạn, bạn cần ngồi trước camera và thắng người.
+                        </p>
+                        <div class="face__confim">
+                            <input type="checkbox" id="check__confim-recog">
+                            <p class="face__intruction face__intruction--confim">Xác nhận bạn đã đọc phần hướng dẫn</p>
+                        </div>
+                        <!-- <form action="/detect_face" method="POST"> -->
+                        <div class="face__button">
+                            <button class="btn_recognition" id="btn_recognition">Bật nhận dạng khuôn mặt</button>
+                            <div class="btn_recognition--hidden"></div>
+                        </div>
+                        <!-- </form> -->
+                    </div>
             </div>
         </div>
     </div>

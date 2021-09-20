@@ -12,6 +12,7 @@ module.exports = function(app) {
         resave: false,
         saveUninitialized: false
     }));
+    
 
     app.use(flash());
 
@@ -19,7 +20,21 @@ module.exports = function(app) {
 
     app.get('/index', function(req, res, next) {
         //1 là id của người mún gửi tin nhắn
-        res.redirect('/index&messidfriend=' + 19)
+        var idUser = req.cookies.user[1]
+        var getList = `select * from chat where idReceiver = ` + idUser + ` or idSender = ` + idUser + ` order by time DESC limit 1`
+        connection.query(getList, (err, result) => {
+            if (err) {
+                throw err;
+            }
+            for (var i = 0; i < result.length; i++) {
+                if (result[i].idSender == idUser) {
+                    res.redirect('/index&messidfriend=' + result[i].idReceiver)
+                } else {
+                    res.redirect('/index&messidfriend=' + result[i].idSender)
+                }
+            }
+
+        })
     })
 
     app.get('/index&messidfriend=:id', function(req, res, next) {
@@ -36,7 +51,8 @@ module.exports = function(app) {
                 }
                 var newArr = arr
                 if (newArr.indexOf(idFriend) != -1) {
-                    var sql = `select * from user where id = ` + idFriend + ``
+                    var sql = `select * from user where id = ` + idFriend + `;
+                    select * from user where id = ` + req.cookies.user[1] + ``
                     connection.query(sql, (err, result) => {
                         if (err) {
                             throw err;
@@ -44,10 +60,11 @@ module.exports = function(app) {
                         if (result.length > 0) {
                             res.render("index", {
                                 user: req.cookies.user[0],
-                                idReceiver: result[0].id,
+                                idReceiver: result[0][0].id,
                                 status: "OK",
-                                nameReceiver: result[0].name,
-                                imageReceiver: result[0].image,
+                                nameReceiver: result[0][0].name + " " + result[0][0].surname,
+                                imageReceiver: result[0][0].image,
+                                image: result[1][0].image,
                                 idUser: req.cookies.user[1],
                                 message: req.flash('userSigin', "bạn đã đăng nhập thành công")
                             });
@@ -58,10 +75,11 @@ module.exports = function(app) {
                     res.render("index", {
                         user: req.cookies.user[0],
                         idUser: req.cookies.user[1],
-                        idReceiver: "",
+                        idReceiver: idFriend,
                         status: "",
                         nameReceiver: "",
                         imageReceiver: "",
+                        image: "",
                         message: req.flash('userSigin', "bạn đã đăng nhập thành công")
                     });
                 }
@@ -122,4 +140,8 @@ module.exports = function(app) {
         }
     });
 
+    app.get('/dangxuat', (req, res, next) => {
+        res.clearCookie("user");
+        res.redirect('dangnhap')
+    })
 }

@@ -1,6 +1,6 @@
 var mysql = require('mysql');
 
-
+console.log("Dang connect")
 
 var connection = mysql.createConnection({
     host: 'localhost',
@@ -10,5 +10,10 @@ var connection = mysql.createConnection({
     multipleStatements: true
 });
 
-connection.connect();
+connection.connect(
+    function(err){
+        if(err) throw err;
+        console.log("Thanh Cong")
+    }
+);
 module.exports = connection;

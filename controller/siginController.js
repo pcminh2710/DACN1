@@ -48,7 +48,7 @@ module.exports = function(app) {
                 throw err;
             }
             if (result.length > 0) {
-                res.cookie('user', [result[0].name, result[0].id]);
+                res.cookie('user', [result[0].name, result[0].id, result[0].image]);
                 req.flash('userSigin', "bạn đã đăng nhập thành công");
                 res.redirect('/index');
             } else {
@@ -72,7 +72,7 @@ module.exports = function(app) {
         var startdate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
 
         if (surname == null || name == null || phone == null || password == null || birthday == null || gender == null || startdate == null) {
-            res.redirect('/dangnhap');
+            res.redirect('/index');
         } else {
             var sqlcheckphone = "select * from user where phone = '" + phone + "'";
             connection.query(sqlcheckphone, function(err, result) {
@@ -80,7 +80,7 @@ module.exports = function(app) {
                     throw err;
                 }
                 if (result.length > 0) {
-                    res.redirect("/dangnhap");
+                    res.redirect("/index");
                 } else {
                     //thêm người dùng
                     var sql = "insert into user(surname, name, phone, password, gender, startdate, image, birthday) values ('" + surname + "' , '" + name + "', '" + phone + "', '" + hashPass + "', '" + gender + "', '" + startdate + "', '', '" + birthday + "')";
@@ -95,7 +95,7 @@ module.exports = function(app) {
                                 throw err;
                             }
                             //tạo cookeie với name và id của người dùng.
-                            res.cookie('user', [resultdata[0].name, resultdata[0].id]);
+                            res.cookie('user', [resultdata[0].name, resultdata[0].id, resultdata[0].image]);
                             req.flash('userSigin', "bạn đã đăng ký thành công");
                             res.redirect("/index");
                         });

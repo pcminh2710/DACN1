@@ -1,20 +1,165 @@
 $(document).ready(function() {
-    // $("input").focusout(function() {
+    // $('#searchName').focusout(function() {
     //     $('#text').html('');
     //     $('#list-suggesstion').html('');
     //     $(this).val("")
+    //     document.getElementById('list-conversation').style.display = 'block';
     // });
-    $("input").focusin(function() {
+    $.ajax({
+        type: "POST",
+        url: "./nhan-dien-khuon-mat/recognitiondata.py",
+        success: function(){
+
+        }
+      });
+
+    $('.container-right').click(function() {
+        $('#text').html('');
+        $('#list-suggesstion').html('');
+        $('#searchName').val("")
+        document.getElementById('list-conversation').style.display = 'block'
+        document.getElementById('user__setting-container').style.display = 'none'
+    })
+
+    var check = true;
+    $('.user-setting').click(function() {
+        if (check) {
+            document.getElementById('user__setting-container').style.display = 'block'
+            check = false;
+        } else {
+            document.getElementById('user__setting-container').style.display = 'none'
+            check = true
+        }
+
+    })
+    $('.user__setting--face').click(function() {
+        document.getElementById('container-model-face').style.display = 'block'
+    })
+    $('#recognition').click(function() {
+        document.getElementById('container-model-recognition').style.display = 'block'
+    })
+    $('.face__close').click(function() {
+        document.getElementById('container-model-recognition').style.display = 'none'
+        document.getElementById('container-model-face').style.display = 'none'
+    })
+
+    $('#check__confim').change(function() {
+        if ($(this).prop('checked')) {
+            $('.btn_face--hidden').hide()
+        } else {
+            $('.btn_face--hidden').show()
+        }
+    });
+
+    $('#check__confim-recog').change(function() {
+        if ($(this).prop('checked')) {
+            $('.btn_recognition--hidden').hide()
+        } else {
+            $('.btn_recognition--hidden').show()
+        }
+    });
+
+    $('.btn__face').click(function() {
+        toast({
+            title: "Thông báo",
+            message: "Đang bật camera...",
+            type: "success",
+            duration: 5000
+        });
+        $.ajax({
+            type: "POST",
+            url: "name",
+            success: function(result) {
+                if(result == "ok"){
+                    toast({
+                        title: "Thông báo",
+                        message: "Bạn đã đăng ký khuôn mặt thành công",
+                        type: "success",
+                        duration: 5000
+                    });
+                }
+            }
+        });
+        document.getElementById('container-model-face').style.display = 'none'
+        console.log("button")
+    })
+    
+    $('.btn_recognition').click(function() {
+        console.log("recognition")
+        toast({
+            title: "Thông báo",
+            message: "Đang bật hệ thống nhận diện khuôn mặt...",
+            type: "success",
+            duration: 5000
+        });
+        $.ajax({
+            type: "POST",
+            url: "recognition",
+            success: function(result) {
+                setTimeout(function(){
+                    if(result == "nofile"){
+                        toast({
+                            title: "Thông báo",
+                            message: "Bạn chưa đăng ký khuông mặt",
+                            type: "success",
+                            duration: 5000
+                        });
+                    }
+                },2000)
+            }
+        });
+        document.getElementById('container-model-recognition').style.display = 'none'
+
+    })
+    $('#searchName').focusin(function() {
         document.getElementById('suggesstion-box').style.display = 'block';
+        document.getElementById('list-conversation').style.display = 'none';
+        document.getElementById('list-conversation').style.display = 'none';
         $('#text').html('');
         $('#list-suggesstion').html('');
     });
     $('#list-suggesstion').focusin(function() {
         document.getElementById('suggesstion-box').style.display = 'block';
     });
-    var name1 = name;
-    $('.nameReceiver').html(name1);
 
+
+
+    function toast({ title = "", message = "", type = "info", duration = 3000 }) {
+        const main = document.getElementById("notification__all");
+        if (main) {
+          const toast = document.createElement("div");
+      
+          // Auto remove toast
+          const autoRemoveId = setTimeout(function () {
+            main.removeChild(toast);
+          }, duration);
+      
+          // Remove toast when clicked
+          toast.onclick = function (e) {
+            if (e.target.closest(".toast__close")) {
+              main.removeChild(toast);
+              clearTimeout(autoRemoveId);
+            }
+          };
+      
+    
+          const delay = (duration / 1000).toFixed(2);
+      
+          toast.classList.add("notification__all");
+      
+          toast.innerHTML = `
+                          <div class="toast__icon">
+                              <i class="fas fa-bell"></i>
+                          </div>
+                          <div class="toast__body">
+                              <h3 class="toast__title">${title}</h3>
+                              <p class="toast__msg">${message}</p>
+                          </div>
+                      `;
+          main.appendChild(toast);
+        }
+    }
+      
 });
 
 const checkFriend = (idSender, idReceiver) => {
@@ -218,7 +363,7 @@ function updateImage(idUser) {
 }
 
 
-
+//hiển thị search
 $(function() {
     $("#searchName").autocomplete({
         source: function(request, response) {
@@ -237,9 +382,10 @@ $(function() {
                         <i class="fas fa-search"></i></span> &nbsp tìm kiếm tin nhắn cho "` + text + `"</div>
                         <div class="title-search" style="padding: 10px 15px 10px 15px;">Nguời dùng</div>`);
                         $.each(data, function(key, value) {
-                            $('#list-suggesstion').append(`<div  id="row-search" class="row-search">
+                            $('#list-suggesstion').append(`
+                            <div  id="row-search" class="row-search">
                             <div onclick=Receiver("` + value.id + `")>
-                            <img src="assets/image/user.jpg" height= "30px" width="30px" class="image-user-search" />
+                            <img src="assets/image/` + value.image + `" height= "30px" width="30px" class="image-user-search" />
                             ` + value.name + `</div>
                             <div class="addFriend">
                             <button id="add` + value.id + `" onclick=addFriend("` + value.name + `",'` + value.id + `') class="friend add` + value.id + `">` + buttonFriend(value.id) + `</button>

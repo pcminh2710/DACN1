@@ -1,0 +1,97 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 90vh;
+    padding: 0px;
+    margin: 0px;
+    background-color: black;
+}
+
+.container-image {
+    display: flex;
+    justify-content: center;
+}
+
+img {
+    border-radius: 100px;
+    height: 100px;
+    width: 100px;
+}
+
+.status {
+    margin-top: 8px;
+    display: flex;
+    justify-content: center;
+}
+
+.name {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.name span {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    font-size: 1.5rem;
+    text-align: center;
+    color: white;
+}
+
+.status span {
+    color: white;
+}
+
+.container-video-mic {
+    display: flex;
+    position: absolute;
+    bottom: 20px;
+    cursor: pointer;
+}
+
+.container-video-mic .hi {
+    background-color: #585858;
+    margin: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-radius: 50px;
+    height: 48px;
+    width: 48px;
+}
+
+.container-video-mic .hi i {
+    font-size: 25px;
+    color: white;
+}
+
+.container-cancel {
+    margin: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-radius: 50px;
+    height: 48px;
+    width: 48px;
+    background-color: #FF4242;
+    color: white;
+}
+
+video {
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    height: 200px;
+    width: 350px;
+    border: solid 1px gray;
+}
+
+.main-video {
+    /* position: absolute;
+    bottom: 10px;
+    right: 10px; */
+    border-radius: 5px;
+}

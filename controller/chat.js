@@ -158,4 +158,149 @@ module.exports = function(app) {
     })
 
 
+    //hiển thị nội dung chat giữa 2 người
+    app.post('/contentChat', urlencodeParser, function(req, res, next) {
+        var idSender = req.body.idSender
+        var idReceiver = req.body.idReceiver
+
+        var getName = `select * from user where id = ` + idReceiver + ``
+        connection.query(getName, (err, resultName) => {
+            if (err) {
+                throw err
+            }
+            var sqlChat = `select * from chathistorys 
+            where (idReceiver = ` + idReceiver + ` and idSender = ` + idSender + `) 
+            or (idReceiver = ` + idSender + ` and idSender = ` + idReceiver + `) `
+
+            connection.query(sqlChat, (err, result) => {
+                if (err) {
+                    throw err;
+                }
+                var arr = [];
+                if (result.length > 0) {
+                    for (var i = 0; i < result.length; i++) {
+                        var obj = {
+                            name: resultName[0].name + " " + resultName[0].surname,
+                            idSender: result[i].idSender,
+                            idReceiver: result[i].idReceiver,
+                            message: result[i].message,
+                            time: result[i].time,
+                            image: resultName[0].image
+                        }
+                        arr.push(obj)
+                    }
+                } else {
+                    var obj = {
+                        name: resultName[0].name + " " + resultName[0].surname,
+                        idSender: "",
+                        idReceiver: "",
+                        message: "",
+                        time: "",
+                        image: ""
+                    }
+                    arr.push(obj)
+                }
+                res.send(arr)
+            })
+        })
+
+    })
+
+
+    //hiển thị listConversation
+    app.post('/listConversation', urlencodeParser, function(req, res, next) {
+        var idUser = req.body.idUser
+
+        var getList = `select * from chat where idReceiver = ` + idUser + ` or idSender = ` + idUser + ` order by time DESC`
+        connection.query(getList, (err, result) => {
+            if (err) {
+                throw err;
+            }
+
+            var arr = []
+            for (var i = 0; i < result.length; i++) {
+                if (result[i].idSender == idUser) {
+                    var obj = {
+                        idReceiver: result[i].idReceiver
+                    }
+                    arr.push(obj)
+                } else {
+                    var obj = {
+                        idReceiver: result[i].idSender
+                    }
+                    arr.push(obj)
+                }
+            }
+
+            res.send(arr)
+        })
+    })
+
+
+    //getName conversation
+    app.post('/getNameConversation', urlencodeParser, function(req, res, next) {
+        var idUser = req.body.idUser
+        var idReceiver = req.body.idReceiver
+
+        var getName = `select * from user where id = ` + idReceiver + ``;
+        connection.query(getName, (err, result) => {
+            if (err) {
+                throw err;
+            }
+            var getchat = `select * from chathistorys where (idReceiver = ` + idReceiver + ` and idSender = ` + idUser + `) 
+            or (idReceiver = ` + idUser + ` and idSender = ` + idReceiver + `) order by id DESC limit 1`;
+            connection.query(getchat, (err, resultchat) => {
+                if (err) {
+                    throw err
+                }
+                var arr = [];
+                if (resultchat[0].idSender == idUser) {
+                    var obj = {
+                        name: result[0].name,
+                        surname: result[0].surname,
+                        message: "Bạn: " + resultchat[0].message,
+                        image: result[0].image
+                    }
+                } else {
+                    var obj = {
+                        name: result[0].name,
+                        surname: result[0].surname,
+                        message: resultchat[0].message,
+                        image: result[0].image
+                    }
+                }
+
+                arr.push(obj)
+                res.send(arr)
+            })
+        })
+    })
+
+
+    app.post('/imageShare', urlencodeParser, function(req, res, next) {
+        var idSender = req.body.idSender
+        var idReceiver = req.body.idReceiver
+
+        var getImage = `select * from chathistorys where (idReceiver = ` + idReceiver + ` and idSender = ` + idSender + `) 
+            or (idReceiver = ` + idSender + ` and idSender = ` + idReceiver + `) order by id DESC`;
+
+        connection.query(getImage, function(err, result) {
+            if (err) {
+                throw err;
+            }
+            var arr = []
+            for (var i = 0; i < result.length; i++) {
+                var message = result[i].message
+                if (message.includes(".png") || message.includes(".jpg")) {
+                    var obj = {
+                        image: result[i].message
+                    }
+                    arr.push(obj)
+                }
+            }
+            res.send(arr)
+        })
+
+    })
+
 }
